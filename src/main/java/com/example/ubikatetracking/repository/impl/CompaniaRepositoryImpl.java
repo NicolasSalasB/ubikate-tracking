@@ -7,10 +7,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -62,6 +59,68 @@ public class CompaniaRepositoryImpl implements CompaniaRepository {
         }
 
         return msg;
+    }
+
+    @Override
+    public String update(Compania compania) {
+        String query = "UPDATE FUBI_TA_COMPANIA SET VC_NOMBRE_COMPANIA = ?, VC_NOMBRE_CORTO_COMPANIA = ?, CH_SITUACION_REGISTRO = ?, DT_FECHA_REGISTRO = ?, VC_DOMICILIO_EMPRESA = ? WHERE CH_CODIGO_COMPANIA = ?";
+        String msg = "";
+
+        Date fechaHoraActual = new Date();
+        SimpleDateFormat formatoFechaHora = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String fechaHora = formatoFechaHora.format(fechaHoraActual);
+
+        try (Connection con = DriverManager.getConnection(dataSource, user, password);
+             PreparedStatement stmt = con.prepareStatement(query)) {
+
+            stmt.setString(1, compania.getNombreCompania());
+            stmt.setString(2, compania.getNombreCortoCompania());
+            stmt.setString(3, compania.getSituacionRegistro());
+            stmt.setString(4, fechaHora);
+            stmt.setString(5, compania.getDomicilioEmpresa());
+            stmt.setLong(6, compania.getCodigoCompania());
+
+            int filasAfectadas = stmt.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                msg = "Registro actualizado correctamente.";
+            } else {
+                msg = "No se pudo actualizar el registro.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return msg;
+    }
+
+    @Override
+    public Compania getById(String id) {
+        String query = "SELECT * FROM FUBI_TA_COMPANIA WHERE CH_CODIGO_COMPANIA = ?";
+        Compania compania = null;
+
+        try (Connection con = DriverManager.getConnection(dataSource, user, password);
+             PreparedStatement stmt = con.prepareStatement(query)) {
+
+            stmt.setString(1, id);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Obtener los datos del resultado y crear un objeto Compania
+                compania = new Compania();
+                compania.setCodigoCompania(rs.getLong("CH_CODIGO_COMPANIA"));
+                compania.setNombreCompania(rs.getString("VC_NOMBRE_COMPANIA"));
+                compania.setNombreCortoCompania(rs.getString("VC_NOMBRE_CORTO_COMPANIA"));
+                compania.setSituacionRegistro(rs.getString("CH_SITUACION_REGISTRO"));
+                compania.setFechaRegistro(rs.getDate("DT_FECHA_REGISTRO"));
+                compania.setDomicilioEmpresa(rs.getString("VC_DOMICILIO_EMPRESA"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return compania;
     }
 
     @Override

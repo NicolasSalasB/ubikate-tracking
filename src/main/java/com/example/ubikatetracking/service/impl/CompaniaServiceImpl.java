@@ -14,6 +14,17 @@ public class CompaniaServiceImpl implements CompaniaService {
     public String agregarCompania(Compania compania) {
         return companiaRepository.save(compania);
     }
+
+    @Override
+    public String actualizarCompania(Compania compania) {
+        return companiaRepository.update(compania);
+    }
+
+    @Override
+    public Compania obtenerCompaniaPorId(String id) {
+        return companiaRepository.getById(id);
+    }
+
     @Override
     public String eliminarCompania(String id) {
         return companiaRepository.delete(id);
