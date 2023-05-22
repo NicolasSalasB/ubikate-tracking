@@ -187,6 +187,52 @@ public class ColaboradorRepositoryImpl implements ColaboradorRepository {
     }
 
     @Override
+    public Colaborador getByUser(String userColaborador) {
+        String query = "SELECT * FROM FUBI_TA_USUARIO WHERE VC_USUARIO = ?";
+        Colaborador colaborador = null;
+
+        try (Connection con = DriverManager.getConnection(dataSource, user, password);
+             PreparedStatement stmt = con.prepareStatement(query)) {
+
+            stmt.setString(1, userColaborador);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Obtener los datos del resultado y crear un objeto Colaborador
+                colaborador = new Colaborador();
+                colaborador.setCodigoUsuario(rs.getLong("IN_CODIGO_USUARIO"));
+                colaborador.setUsuario(rs.getString("VC_USUARIO"));
+                colaborador.setClave(rs.getString("VC_CLAVE"));
+                colaborador.setNombres(rs.getString("VC_NOMBRES"));
+                colaborador.setSituacionRegistro(rs.getString("CH_SITUACION_REGISTRO"));
+                colaborador.setFechaCreacion(rs.getDate("DT_FECHA_CREACION"));
+                colaborador.setApellidoPaterno(rs.getString("VC_APELLIDO_PATERNO"));
+                colaborador.setApellidoMaterno(rs.getString("VC_APELLIDO_MATERNO"));
+                colaborador.setCorreo(rs.getString("VC_CORREO"));
+                colaborador.setTipoDocumento(rs.getString("VC_TIPO_DOCUMENTO"));
+                colaborador.setNumeroDocumentoIdentidad(rs.getString("VC_NUMERO_DOCUMENTO_IDENTIDAD"));
+                colaborador.setNumeroTelefono(rs.getString("VC_NUMERO_TELEFONO"));
+                colaborador.setCodigoCompania(rs.getInt("CH_CODIGO_COMPANIA"));
+                colaborador.setFaceId(rs.getString("VC_FACE_ID"));
+                colaborador.setRutaImagenPerfil(rs.getString("VC_RUTA_IMAGEN_PERFIL"));
+                colaborador.setIp(rs.getString("VC_IP"));
+                colaborador.setUbicacionLatitud(rs.getString("VC_UBICACION_LATITUD"));
+                colaborador.setUbicacionLongitud(rs.getString("VC_UBICACION_LONGITUD"));
+                colaborador.setIndicadoresOrigEnrolado(rs.getInt("CH_INDICADOR_ORIGEN_ENROLADO"));
+                colaborador.setFechaHoraEnrolado(rs.getDate("DT_FECHA_HORA_ENROLADO"));
+                colaborador.setGenerateRandom(rs.getString("VC_GENERATERANDOM"));
+                colaborador.setIndicadorUbicacion(rs.getInt("CH_INDICADOR_UBICACION"));
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return colaborador;
+    }
+
+    @Override
     public String delete(String id) {
         String query = "UPDATE FROM FUBI_TA_USUARIO SET CH_SITUACION_REGISTRO = ? WHERE IN_CODIGO_USUARIO = ?";
         String msg = "";
