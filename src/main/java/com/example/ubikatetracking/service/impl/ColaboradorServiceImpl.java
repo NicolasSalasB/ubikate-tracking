@@ -1,6 +1,8 @@
 package com.example.ubikatetracking.service.impl;
 
 import com.example.ubikatetracking.model.Colaborador;
+import com.example.ubikatetracking.model.ColaboradorPasswordResponse;
+import com.example.ubikatetracking.model.ColaboradorResponse;
 import com.example.ubikatetracking.model.Results;
 import com.example.ubikatetracking.repository.ColaboradorRepository;
 import com.example.ubikatetracking.service.ColaboradorService;
@@ -21,8 +23,8 @@ public class ColaboradorServiceImpl implements ColaboradorService {
     }
 
     @Override
-    public String actualizarColaborador(Colaborador colaborador) {
-        return colaboradorRepository.update(colaborador);
+    public ColaboradorResponse actualizarColaborador(String id, Colaborador colaborador) {
+        return colaboradorRepository.update(id, colaborador);
     }
 
     @Override
@@ -38,5 +40,10 @@ public class ColaboradorServiceImpl implements ColaboradorService {
     @Override
     public Results obtenerColaboradores() {
         return colaboradorRepository.getAll();
+    }
+
+    @Override
+    public ColaboradorPasswordResponse actualizarPasswordColaborador(String id, Colaborador colaborador) {
+        return colaboradorRepository.updatePassword(id, colaborador);
     }
 }

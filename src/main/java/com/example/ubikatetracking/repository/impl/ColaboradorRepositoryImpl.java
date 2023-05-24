@@ -1,6 +1,8 @@
 package com.example.ubikatetracking.repository.impl;
 
 import com.example.ubikatetracking.model.Colaborador;
+import com.example.ubikatetracking.model.ColaboradorPasswordResponse;
+import com.example.ubikatetracking.model.ColaboradorResponse;
 import com.example.ubikatetracking.model.Results;
 import com.example.ubikatetracking.repository.ColaboradorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,58 +88,47 @@ public class ColaboradorRepositoryImpl implements ColaboradorRepository {
     }
 
     @Override
-    public String update(Colaborador colaborador) {
+    public ColaboradorResponse update(String id, Colaborador colaborador) {
         String query = "UPDATE FUBI_TA_USUARIO SET " +
-                "VC_USUARIO=?, VC_CLAVE=?, VC_NOMBRES=?, " +
-                "CH_SITUACION_REGISTRO=?, DT_FECHA_CREACION=?, VC_APELLIDO_PATERNO=?, VC_APELLIDO_MATERNO=?, VC_CORREO=?, " +
-                "VC_NUMERO_DOCUMENTO_IDENTIDAD=?, VC_TIPO_DOCUMENTO=?, VC_NUMERO_TELEFONO=?, CH_CODIGO_COMPANIA=?, VC_FACE_ID=?," +
-                "VC_RUTA_IMAGEN_PERFIL=?, VC_IP=?, VC_UBICACION_LATITUD=?, VC_UBICACION_LONGITUD=?, CH_INDICADOR_ORIGEN_ENROLADO=?," +
-                "DT_FECHA_HORA_ENROLADO=?, VC_GENERATERANDOM=?, CH_INDICADOR_UBICACION=?" +" WHERE IN_CODIGO_USUARIO = ?";
+                "VC_NOMBRES=?, " +
+                "CH_SITUACION_REGISTRO=?, VC_APELLIDO_PATERNO=?, VC_APELLIDO_MATERNO=?, VC_CORREO=?, " +
+                "VC_NUMERO_DOCUMENTO_IDENTIDAD=?, VC_TIPO_DOCUMENTO=?, VC_NUMERO_TELEFONO=?, CH_INDICADOR_UBICACION=? WHERE IN_CODIGO_USUARIO = ?";
 
-        String msg = "";
-
-        Date fechaHoraActual = new Date();
-        SimpleDateFormat formatoFechaHora = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String fechaHora = formatoFechaHora.format(fechaHoraActual);
-
+        ColaboradorResponse response = null;
         try (Connection con = DriverManager.getConnection(dataSource, user, password);
              PreparedStatement stmt = con.prepareStatement(query)) {
 
-            stmt.setString(1, colaborador.getUsuario());
-            stmt.setString(2, colaborador.getClave());
-            stmt.setString(3, colaborador.getNombres());
-            stmt.setString(4, colaborador.getSituacionRegistro());
-            stmt.setString(5, fechaHora);
-            stmt.setString(6, colaborador.getApellidoPaterno());
-            stmt.setString(7, colaborador.getApellidoMaterno());
-            stmt.setString(8, colaborador.getCorreo());
-            stmt.setString(9, colaborador.getNumeroDocumentoIdentidad());
-            stmt.setString(10, colaborador.getTipoDocumento());
-            stmt.setString(11, colaborador.getNumeroTelefono());
-            stmt.setInt(12, colaborador.getCodigoCompania());
-            stmt.setString(13, colaborador.getFaceId());
-            stmt.setString(14, colaborador.getRutaImagenPerfil());
-            stmt.setString(15, colaborador.getIp());
-            stmt.setString(16, colaborador.getUbicacionLatitud());
-            stmt.setString(17, colaborador.getUbicacionLongitud());
-            stmt.setInt(18, colaborador.getIndicadoresOrigEnrolado());
-            stmt.setString(19, fechaHora);
-            stmt.setString(20, colaborador.getGenerateRandom());
-            stmt.setInt(21, colaborador.getIndicadorUbicacion());
-            stmt.setLong(22, colaborador.getCodigoUsuario());
+            stmt.setString(1, colaborador.getNombres());
+            stmt.setString(2, colaborador.getSituacionRegistro());
+            stmt.setString(3, colaborador.getApellidoPaterno());
+            stmt.setString(4, colaborador.getApellidoMaterno());
+            stmt.setString(5, colaborador.getCorreo());
+            stmt.setString(6, colaborador.getNumeroDocumentoIdentidad());
+            stmt.setString(7, colaborador.getTipoDocumento());
+            stmt.setString(8, colaborador.getNumeroTelefono());
+            stmt.setInt(9, colaborador.getIndicadorUbicacion());
+            stmt.setLong(10, Long.parseLong(id));
 
             int filasAfectadas = stmt.executeUpdate();
 
-            if (filasAfectadas > 0) {
-                msg = "Registro actualizado correctamente.";
-            } else {
-                msg = "No se pudo actualizar el registro.";
+            if(filasAfectadas > 0){
+                response = new ColaboradorResponse();
+                response.setId(id);
+                response.setNombres(colaborador.getNombres());
+                response.setSituacionRegistro(colaborador.getSituacionRegistro());
+                response.setApellidoPaterno(colaborador.getApellidoPaterno());
+                response.setApellidoMaterno(colaborador.getApellidoMaterno());
+                response.setCorreo(colaborador.getCorreo());
+                response.setNumeroDocumentoIdentidad(colaborador.getNumeroDocumentoIdentidad());
+                response.setTipoDocumento(colaborador.getTipoDocumento());
+                response.setNumeroTelefono(colaborador.getNumeroTelefono());
+                response.setIndicadorUbicacion(colaborador.getIndicadorUbicacion());
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return msg;
+        return response;
     }
 
     @Override
@@ -306,5 +297,30 @@ public class ColaboradorRepositoryImpl implements ColaboradorRepository {
             e.printStackTrace();
         }
         return results;
+    }
+
+    @Override
+    public ColaboradorPasswordResponse updatePassword(String id, Colaborador colaborador) {
+        String query = "UPDATE FUBI_TA_USUARIO SET VC_CLAVE=? WHERE IN_CODIGO_USUARIO = ?";
+
+        ColaboradorPasswordResponse response = null;
+
+        try (Connection con = DriverManager.getConnection(dataSource, user, password);
+             PreparedStatement stmt = con.prepareStatement(query)) {
+
+            stmt.setString(1, colaborador.getClave());
+            stmt.setLong(2, Long.parseLong(id));
+
+            int filasAfectadas = stmt.executeUpdate();
+
+            if(filasAfectadas > 0){
+                response = new ColaboradorPasswordResponse();
+                response.setId(id);
+                response.setMensaje("Password Actualizada");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 }
