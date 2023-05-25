@@ -1,9 +1,9 @@
 package com.example.ubikatetracking.repository.impl;
 
-import com.example.ubikatetracking.model.Colaborador;
 import com.example.ubikatetracking.model.Marca;
 import com.example.ubikatetracking.model.Results;
 import com.example.ubikatetracking.repository.MarcasRepository;
+import com.example.ubikatetracking.request.MarcaFechasRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
@@ -31,12 +31,16 @@ public class MarcasRepositoryImpl implements MarcasRepository {
     }
 
     @Override
-    public Results getAll() {
+    public Results getAll(MarcaFechasRequest marcaFechasRequest) {
+
+        long startTimestamp = marcaFechasRequest.getFechaInicio() != null ? marcaFechasRequest.getFechaInicio().getTime() : Long.MIN_VALUE;
+        long endTimestamp = marcaFechasRequest.getFechaFin() != null ? marcaFechasRequest.getFechaFin().getTime() : Long.MAX_VALUE;
 
         String query = "SELECT * FROM FUBI_TA_UBICATE_MARCAS";
 
         Results results = new Results();
         List<Marca> resultados = new ArrayList<>();
+        List<Marca> marcaList = new ArrayList<>();
         int totalRegistros = 0;
 
         try (Connection connection = DriverManager.getConnection(dataSource, user, password);
@@ -62,6 +66,17 @@ public class MarcasRepositoryImpl implements MarcasRepository {
                 resultados.add(marca);
                 totalRegistros++;
             }
+
+            for (Marca marcaResults : resultados) {
+                    Date itemDate = new Date(marcaResults.getFechaRegistro().getTime());
+
+                    if (itemDate.getTime() >= startTimestamp && itemDate.getTime() <= endTimestamp) {
+                        // El item cumple con el filtro de fecha
+                        // Agrega el item a los datos filtrados
+                        marcaList.add(marcaResults);
+                    }
+            }
+
             results.setResultados(resultados);
             results.setTotalRegistros(totalRegistros);
 
