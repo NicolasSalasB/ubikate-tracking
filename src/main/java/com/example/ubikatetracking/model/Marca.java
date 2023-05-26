@@ -2,8 +2,6 @@ package com.example.ubikatetracking.model;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "FUBI_TA_UBICATE_MARCAS")

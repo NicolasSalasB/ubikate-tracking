@@ -3,14 +3,13 @@ package com.example.ubikatetracking.repository.impl;
 import com.example.ubikatetracking.model.Marca;
 import com.example.ubikatetracking.model.Results;
 import com.example.ubikatetracking.repository.MarcasRepository;
-import com.example.ubikatetracking.request.MarcaFechasRequest;
+import com.mysql.cj.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,21 +30,32 @@ public class MarcasRepositoryImpl implements MarcasRepository {
     }
 
     @Override
-    public Results getAll(MarcaFechasRequest marcaFechasRequest) {
+    public Results getMarcasByFilters(String fechaInicio, String fechaFin, String nombre) {
 
-        long startTimestamp = marcaFechasRequest.getFechaInicio() != null ? marcaFechasRequest.getFechaInicio().getTime() : Long.MIN_VALUE;
-        long endTimestamp = marcaFechasRequest.getFechaFin() != null ? marcaFechasRequest.getFechaFin().getTime() : Long.MAX_VALUE;
-
-        String query = "SELECT * FROM FUBI_TA_UBICATE_MARCAS";
+        String query = "";
+        if (StringUtils.isNullOrEmpty(nombre)) {
+            query = "SELECT * FROM FUBI_TA_UBICATE_MARCAS WHERE DT_FECHA_REGISTRO >= ? AND DT_FECHA_REGISTRO <= ?";
+        } else {
+            query = "SELECT * FROM FUBI_TA_UBICATE_MARCAS WHERE DT_FECHA_REGISTRO >= ? AND DT_FECHA_REGISTRO <= ? AND VC_NOMBRE_EMPLEADO LIKE CONCAT('%', UPPER(?) ,'%')";
+        }
 
         Results results = new Results();
         List<Marca> resultados = new ArrayList<>();
-        List<Marca> marcaList = new ArrayList<>();
         int totalRegistros = 0;
 
         try (Connection connection = DriverManager.getConnection(dataSource, user, password);
-             Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(query)) {
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+            fechaInicio = fechaInicio.substring(0, 11) + "00:00:00" + fechaInicio.substring(11 + 1);
+            fechaFin = fechaFin.substring(0, 11) + "23:59:59" + fechaFin.substring(11 + 1);
+
+            statement.setString(1, fechaInicio);
+            statement.setString(2, fechaFin);
+            if (!StringUtils.isNullOrEmpty(nombre)) {
+                statement.setString(3, nombre);
+            }
+
+            ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
 
@@ -56,25 +66,15 @@ public class MarcasRepositoryImpl implements MarcasRepository {
                 marca.setCodigoCompania(rs.getString("CH_CODIGO_COMPANIA"));
                 marca.setLatitud(rs.getString("VC_LATITUD"));
                 marca.setLongitud(rs.getString("VC_LONGITUD"));
-                marca.setTipoOrigen(rs.getString("CH_TIPO_ORIGEN"));
+                //marca.setTipoOrigen(rs.getString("CH_TIPO_ORIGEN"));
                 marca.setFechaRegistro(rs.getTimestamp("DT_FECHA_REGISTRO"));
-                marca.setIdEnrolador(rs.getString("VC_IDENTIFICADOR_ENROLADOR"));
-                marca.setDireccion(rs.getString("VC_DIRECCION"));
+                //marca.setIdEnrolador(rs.getString("VC_IDENTIFICADOR_ENROLADOR"));
+                //marca.setDireccion(rs.getString("VC_DIRECCION"));
                 marca.setSituacionRegistro(rs.getString("CH_SITUACION_REGISTRO"));
                 marca.setCodUsuario(rs.getInt("IN_CODIGO_USUARIO"));
 
                 resultados.add(marca);
                 totalRegistros++;
-            }
-
-            for (Marca marcaResults : resultados) {
-                    Date itemDate = new Date(marcaResults.getFechaRegistro().getTime());
-
-                    if (itemDate.getTime() >= startTimestamp && itemDate.getTime() <= endTimestamp) {
-                        // El item cumple con el filtro de fecha
-                        // Agrega el item a los datos filtrados
-                        marcaList.add(marcaResults);
-                    }
             }
 
             results.setResultados(resultados);

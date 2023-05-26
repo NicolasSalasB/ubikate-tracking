@@ -15,6 +15,9 @@ public class MarcaServiceImpl implements MarcaService {
 
     @Override
     public Results obtenerMarcas(MarcaFechasRequest marcaFechasRequest) {
-        return marcasRepository.getAll(marcaFechasRequest);
+        String fechaInicio = marcaFechasRequest.getFechaInicio();
+        String fechaFin = marcaFechasRequest.getFechaFin();
+        String nombre = marcaFechasRequest.getNombre();
+        return marcasRepository.getMarcasByFilters(fechaInicio, fechaFin, nombre);
     }
 }
