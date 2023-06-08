@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import(CorsConfig.class)
 @ComponentScan(basePackages = "com.example.ubikatetracking")
 @EntityScan(basePackages = "com.example.ubikatetracking.model")
-@EnableJpaRepositories(basePackages = "com.example.ubikatetracking.repository.UserRepository")
+@EnableJpaRepositories(basePackages = "com.example.ubikatetracking.repository")
 public class UbikateTrackingApplication {
 
     public static void main(String[] args) {
